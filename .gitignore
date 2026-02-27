@@ -1,0 +1,8 @@
+# 환경변수 (API 키, 토큰 등 민감 정보)
+.env
+
+# OpenClaw 설정 및 로그
+.openclaw/
+
+# 시스템
+.DS_Store
