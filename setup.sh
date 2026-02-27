@@ -20,6 +20,25 @@ fi
 # ── .env 로드 ──────────────────────────────────────────────
 export $(grep -v '^#' .env | grep -v '^$' | xargs)
 
+# ── 필수 패키지 설치 (packages.txt) ───────────────────────
+if [ -f "packages.txt" ]; then
+  echo "📦 필수 패키지 설치 중..."
+  apt-get update -qq
+  xargs apt-get install -y < packages.txt
+  echo "✅ 패키지 설치 완료"
+fi
+
+# ── Node.js 22 확인 및 설치 ────────────────────────────────
+NODE_MAJOR=$(node --version 2>/dev/null | cut -d'v' -f2 | cut -d'.' -f1)
+if [ -z "$NODE_MAJOR" ] || [ "$NODE_MAJOR" -lt 22 ]; then
+  echo "📦 Node.js 22 설치 중..."
+  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+  apt-get install -y nodejs
+  echo "✅ Node.js 설치 완료: $(node --version)"
+else
+  echo "✅ Node.js 감지됨: $(node --version)"
+fi
+
 # ── Telegram 토큰 확인 ─────────────────────────────────────
 if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
   echo "❌ TELEGRAM_BOT_TOKEN이 설정되지 않았습니다."
@@ -30,6 +49,7 @@ echo "📱 Telegram 봇 토큰 감지됨"
 # ── Ollama 모델 설정 ───────────────────────────────────────
 OLLAMA_MODEL="${OLLAMA_MODEL:-deepseek-r1:7b}"
 OLLAMA_BASE_URL="http://localhost:11434"
+OLLAMA_API_KEY="${OLLAMA_API_KEY:-ollama-local}"
 echo "🤖 사용 모델: ${OLLAMA_MODEL}"
 
 # ── Ollama 설치 확인 ───────────────────────────────────────
@@ -114,9 +134,10 @@ cat > "$AGENT_DIR/auth-profiles.json" << JSONEOF
   "version": 1,
   "profiles": {
     "ollama:default": {
-      "type": "ollama",
+      "type": "api_key",
       "provider": "ollama",
-      "baseUrl": "${OLLAMA_BASE_URL}"
+      "baseUrl": "${OLLAMA_BASE_URL}",
+      "key": "${OLLAMA_API_KEY}"
     }
   },
   "usageStats": {}
