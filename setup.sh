@@ -113,6 +113,7 @@ cat > "$CONFIG_DIR/openclaw.json" << JSONEOF
   "channels": {
     "telegram": {
       "enabled": true,
+      "streaming": "off",
       "botToken": "${TELEGRAM_BOT_TOKEN}",
       "dmPolicy": "pairing"
     }
@@ -155,3 +156,19 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "▶  다음 단계: bash run.sh"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# ── workspace 파일 복사 ────────────────────────────────────
+WORKSPACE_DIR="$CONFIG_DIR/workspace"
+mkdir -p "$WORKSPACE_DIR"
+
+# workspace/ 폴더 안의 파일 복사
+if [ -d "workspace" ]; then
+  for f in workspace/*; do
+    [ -f "$f" ] && cp "$f" "$WORKSPACE_DIR/" && echo "✅ workspace 파일 복사: $(basename $f)"
+  done
+fi
+
+# 루트의 test_*.md 파일 복사 (README.md 제외)
+for f in test_*.md; do
+  [ -f "$f" ] && cp "$f" "$WORKSPACE_DIR/" && echo "✅ 테스트 파일 복사: $f"
+done
