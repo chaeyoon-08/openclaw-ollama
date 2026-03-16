@@ -1,100 +1,203 @@
-# openclaw-ollama
+# OpenClaw Telegram AI Agent Gateway (Ollama)
 
-OpenClaw + Ollama 단일 컨테이너 배포 스크립트.
-API 비용 없이 로컬 LLM(DeepSeek-R1 등)으로 OpenClaw를 운영할 수 있도록 구성한 레포입니다.
-
----
-
-## 구성
-
-```
-[Telegram]
-    ↓
-[OpenClaw Gateway :8080]
-    ↓
-[Ollama :11434]
-    ↓
-[qwen3:8b (로컬 모델)]
-```
-
-- **OpenClaw** — 메시징 채널과 LLM을 연결하는 게이트웨이
-- **Ollama** — 로컬 LLM 실행 프레임워크. API 키 없이 무료로 사용 가능
-- **qwen3:8b** — 기본 모델. `.env`에서 자유롭게 교체 가능
+Telegram 봇과 Ollama 로컬 LLM을 연결하는 AI 에이전트 게이트웨이.
+API 비용 없이 로컬 모델(qwen3:32b 등)으로 OpenClaw를 운영할 수 있도록 구성한 레포입니다.
+gcube 컨테이너 환경에서 `git clone → setup → run` 3단계로 배포 완료.
 
 ---
 
-## 사전 준비
+## 전체 흐름
 
-- gcube 운영서버 워크로드 (HTTPS 지원 필요)
-- Telegram 봇 토큰 ([@BotFather](https://t.me/BotFather)에서 발급)
+```mermaid
+flowchart TD
+    A[Telegram BotFather에서 봇 생성<br/>봇 토큰 저장] --> B
+    B[gcube 워크로드 배포<br/>포트 8080] --> C
+    C[컨테이너 터미널 접속] --> D
+    D[git clone<br/>cd openclaw-ollama] --> E
+    E[cp .env.example .env<br/>nano .env에 봇 토큰 입력] --> F
+    F[bash setup.sh<br/>→ Ollama 설치 + 설정 파일 자동 생성] --> G
+    G[bash run.sh<br/>→ Ollama 서버 + Gateway 백그라운드 실행] --> H
+    H[Telegram 봇에 메시지 전송<br/>→ 페어링 코드 수신] --> I
+    I[터미널에서 승인<br/>openclaw pairing approve telegram 코드] --> J
+    J[Telegram 봇 정상 작동 ✅<br/>로컬 LLM 대화 시작]
+```
 
 ---
 
 ## gcube 워크로드 설정
 
 | 항목 | 값 |
-|------|---|
-| 컨테이너 이미지 | `ollama/ollama:latest` |
-| 저장소 유형 | `Docker Hub` |
-| 컨테이너 포트 | `8080` |
+|------|-----|
+| 이미지 | `ollama/ollama:latest` |
+| 포트 | `8080` |
 | 초기명령어 | `bash -c "apt-get update -qq && apt-get install -y nano vim && sleep infinity"` |
 
-> Ollama는 컨테이너 내부에 포함되어 있습니다. Node.js 22 및 OpenClaw는 setup.sh가 자동으로 설치합니다.
+> Ollama는 컨테이너 이미지에 포함되어 있습니다. Node.js 22 및 OpenClaw는 `setup.sh`가 자동으로 설치합니다.
 
 ---
 
-## 배포 방법
+## 사전 준비
 
-### 1. 레포 클론
+### 1. Telegram 봇 토큰 발급
+
+- Telegram에서 `@BotFather` 검색 (파란 체크 확인)
+- `/newbot` 입력 → 봇 이름, 유저네임 설정
+- 발급된 토큰(`123456:ABC...` 형식) 저장
+
+> Anthropic API 키 발급 불필요. Ollama가 로컬에서 LLM을 실행합니다.
+
+---
+
+## 실행 방법
+
+### 1. Clone
 
 ```bash
 git clone https://github.com/chaeyoon-08/openclaw-ollama.git
 cd openclaw-ollama
 ```
 
-### 2. .env 파일 작성
+### 2. 환경변수 설정
 
 ```bash
 cp .env.example .env
+nano .env
 ```
 
-`.env` 파일을 열어 Telegram 봇 토큰 입력:
-
-```
-TELEGRAM_BOT_TOKEN=여기에_토큰_입력
-OLLAMA_MODEL=qwen3:8b
+`.env` 파일 내용:
+```env
+TELEGRAM_BOT_TOKEN=여기에_봇_토큰_입력
+OLLAMA_MODEL=qwen3:32b
 OLLAMA_API_KEY=ollama-local
 ```
 
-### 3. 설정 및 실행
+### 3. Setup (최초 1회)
 
 ```bash
 bash setup.sh
+```
+
+다음 작업이 자동으로 실행됩니다:
+- `packages.txt` 시스템 패키지 설치 (curl, git, zstd, python3)
+- Node.js 22 확인 및 설치
+- Ollama 설치
+- openclaw NPM 패키지 전역 설치
+- `~/.openclaw/` 설정 파일 생성
+- `~/.openclaw/workspace/` 생성 및 `identity/*.md`, `docs/*.md` 문서 복사
+
+### 4. Gateway 실행
+
+```bash
 bash run.sh
 ```
 
+출력 예시:
+```
+✅ Gateway 실행 중 (PID: 12345)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 Telegram 봇에 메시지를 보내면 페어링 코드가 발급됩니다.
+
+  1. Telegram에서 생성한 봇에 메시지 전송
+  2. 봇이 보내주는 페어링 코드 복사
+  3. 아래 명령어로 승인:
+     openclaw pairing approve telegram [코드]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
 `run.sh` 실행 시 흐름:
+1. 기존 프로세스 종료
+2. Ollama 서버 기동 (`:11434`)
+3. 지정 모델 다운로드 (최초 1회, qwen3:32b 약 20GB)
+4. OpenClaw Gateway 실행 (`:8080`)
+5. 터미널에 Gateway Token 출력
 
-1. Ollama 서버 기동
-2. 모델 다운로드 (최초 1회, 약 4~5GB)
-3. OpenClaw Gateway 실행
-4. 터미널에 Gateway Token 출력
+### 5. Telegram 페어링
 
-### 4. Control UI 접속 및 Telegram 연결
+1. 생성한 Telegram 봇에 메시지 전송
+2. 봇이 보내주는 페어링 코드 복사
+3. 터미널에서 승인:
 
-1. gcube 서비스 URL 브라우저 접속
-2. Overview 페이지 → **Gateway Token** 입력 → Connect
-3. pairing required 메시지가 뜨면 터미널에서:
-   ```bash
-   openclaw devices list
-   openclaw devices approve <requestId>
-   ```
-4. Telegram 봇에 아무 메시지 전송
-5. 봇에서 받은 코드로 터미널에서:
-   ```bash
-   openclaw pairing approve telegram <코드>
-   ```
-6. 대화 시작
+```bash
+openclaw pairing approve telegram [코드]
+```
+
+승인 완료 후 봇과 대화 시작 가능.
+
+---
+
+## Knowledge Base 문서
+
+`docs/` 폴더에 Markdown 파일을 저장하면, `setup.sh` 실행 시 자동으로 에이전트 workspace(`~/.openclaw/workspace/`)에 복사됩니다.
+`identity/` 폴더의 `IDENTITY.md`, `AGENTS.md`도 동일하게 복사되어 에이전트 정체성과 행동 지침을 정의합니다.
+
+### 사용 방법
+
+```bash
+# 1. docs/ 폴더에 문서 추가
+docs/
+├── test_report.md
+├── user_manual.md
+└── faq.md
+
+# 2. setup.sh 실행 (자동 복사)
+bash setup.sh
+# 출력: ✅ docs 파일 복사: test_report.md
+
+# 3. 복사 확인
+ls ~/.openclaw/workspace/
+# 출력: AGENTS.md  IDENTITY.md  test_report.md  user_manual.md  faq.md
+```
+
+### 검증 예시
+
+에이전트는 workspace의 문서를 참조하여 사용자 질문에 답변할 수 있습니다.
+
+**질문**: "test report의 작성 날짜는?"
+**기대 응답**: 문서 내용 기반 답변 (예: "2026년 3월 5일입니다")
+
+---
+
+## 테스트 성공 기준
+
+| 항목 | 방법 | 성공 기준 |
+|------|------|----------|
+| 1. Gateway 실행 | `bash run.sh` 후 프로세스 확인 | PID 출력, 로그에 에러 없음 |
+| 2. Telegram 연결 | 봇에 메시지 전송 | 페어링 코드 수신 |
+| 3. 페어링 승인 | `openclaw pairing approve telegram [코드]` | 승인 완료 메시지 |
+| 4. AI 응답 | 봇에 "안녕, 넌 뭘 할 수 있어?" 전송 | 로컬 LLM 기반 텍스트 응답 수신 |
+| 5. 문서 기반 Q&A | 봇에 문서 관련 질문 전송 | workspace 문서 기반 정확한 답변 |
+
+---
+
+## 파일 구조
+
+```
+openclaw-ollama/
+├── README.md              ← 실행 방법 (이 파일)
+├── docs/                  ← Knowledge Base 문서 저장소
+│   └── test_report.md     ← 테스트 검증용 문서
+├── identity/              ← 에이전트 정체성 정의
+│   ├── IDENTITY.md        ← DA Assistant 정체성
+│   └── AGENTS.md          ← 한국어 응답 지시사항
+├── setup.sh               ← 최초 1회: Ollama 설치 + ~/.openclaw 설정 자동 생성
+├── run.sh                 ← Ollama 서버 + gateway 실행 + Telegram 페어링 안내
+├── packages.txt           ← apt 설치 패키지 목록 (curl, git, zstd, python3)
+├── .env.example           ← 환경변수 형식 가이드 (git 추적됨)
+├── .env                   ← 실제 봇 토큰 (git 무시됨)
+└── .gitignore
+```
+
+런타임 생성 디렉터리:
+```
+~/.openclaw/
+├── openclaw.json          ← 게이트웨이 + 채널 설정
+├── workspace/             ← 에이전트 작업 공간 (identity/*.md, docs/*.md 복사됨)
+├── agents/main/agent/
+│   └── auth-profiles.json ← Ollama API 연결 정보 (localhost:11434)
+├── ollama.log             ← Ollama 서버 로그
+└── gateway.log            ← 게이트웨이 로그
+```
 
 ---
 
@@ -102,8 +205,9 @@ bash run.sh
 
 `.env`에서 `OLLAMA_MODEL` 값만 바꾸고 `run.sh`를 다시 실행하면 됩니다.
 
-```
-OLLAMA_MODEL=qwen3:8b        # 권장 (tool calling 안정적)
+```env
+OLLAMA_MODEL=qwen3:32b       # 권장 (tool calling 안정적, 고품질)
+# OLLAMA_MODEL=qwen3:8b      # 경량 버전 (약 5GB)
 # OLLAMA_MODEL=llama3.1:8b   # tool calling 지원
 # OLLAMA_MODEL=qwen2.5:7b    # 한국어 품질 우수
 ```
@@ -112,21 +216,91 @@ OLLAMA_MODEL=qwen3:8b        # 권장 (tool calling 안정적)
 
 ---
 
-## 로그 확인
+## 문제 해결
+
+### Gateway 실행 실패
+
+로그 확인:
+```bash
+cat ~/.openclaw/gateway.log
+```
+
+### Ollama 서버 미응답
+
+로그 확인 및 재시작:
+```bash
+cat ~/.openclaw/ollama.log
+pkill -9 -f "ollama" 2>/dev/null || true
+bash run.sh
+```
+
+### 프로세스 정리 및 재시작
 
 ```bash
-# Ollama 로그
+pkill -9 -f "openclaw" 2>/dev/null || true
+pkill -9 -f "ollama" 2>/dev/null || true
+sleep 2
+bash run.sh
+```
+
+### Telegram 봇 미응답
+
+페어링 상태 확인 및 재시도:
+```bash
+openclaw pairing list
+openclaw pairing approve telegram [코드]
+```
+
+### 문서가 복사되지 않음
+
+1. `docs/` 폴더 존재 확인: `ls docs/`
+2. `.md` 파일 확인: `ls docs/*.md`
+3. `setup.sh` 재실행: `bash setup.sh`
+4. workspace 확인: `ls ~/.openclaw/workspace/`
+
+---
+
+## 주요 명령어
+
+```bash
+# 설정 초기화 (최초 1회 또는 설정 리셋)
+bash setup.sh
+
+# 게이트웨이 실행
+bash run.sh
+
+# Ollama 로그 확인
 cat ~/.openclaw/ollama.log
 
-# Gateway 로그
+# Gateway 로그 확인
 cat ~/.openclaw/gateway.log
 
-# 실시간 로그
-tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log
+# 페어링 목록 확인
+openclaw pairing list
+
+# 페어링 승인
+openclaw pairing approve telegram [코드]
+
+# 게이트웨이 프로세스 종료
+pkill -9 -f "openclaw" 2>/dev/null || true
+
+# 설정 파일 확인
+cat ~/.openclaw/openclaw.json
+
+# 설치된 Ollama 모델 목록
+ollama list
 ```
 
 ---
 
-## 관련 레포
+## 기술 스택
 
-- [openclaw-webui](https://github.com/chaeyoon-08/openclaw-webui) — Gemini/Claude API 버전
+| 레이어 | 기술 |
+|--------|------|
+| 런타임 | Node.js 22 (openclaw NPM 패키지) |
+| AI 모델 | Ollama 로컬 LLM (`qwen3:32b` 기본, `.env`에서 변경 가능) |
+| LLM 서버 | Ollama (`http://localhost:11434`) |
+| 채널 | Telegram Bot API (openclaw 내장 플러그인) |
+| 인프라 | gcube 컨테이너 (`ollama/ollama:latest`) |
+| 설정 관리 | `~/.openclaw/openclaw.json`, `auth-profiles.json` |
+| 스크립트 | Bash (`setup.sh`, `run.sh`) |

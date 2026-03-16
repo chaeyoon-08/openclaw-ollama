@@ -161,14 +161,16 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 WORKSPACE_DIR="$CONFIG_DIR/workspace"
 mkdir -p "$WORKSPACE_DIR"
 
-# workspace/ 폴더 안의 파일 복사
-if [ -d "workspace" ]; then
-  for f in workspace/*; do
-    [ -f "$f" ] && cp "$f" "$WORKSPACE_DIR/" && echo "✅ workspace 파일 복사: $(basename $f)"
+# identity/*.md 파일 복사
+if [ -d "identity" ]; then
+  for f in identity/*.md; do
+    [ -f "$f" ] && cp "$f" "$WORKSPACE_DIR/" && echo "✅ identity 파일 복사: $(basename $f)"
   done
 fi
 
-# 루트의 test_*.md 파일 복사 (README.md 제외)
-for f in test_*.md; do
-  [ -f "$f" ] && cp "$f" "$WORKSPACE_DIR/" && echo "✅ 테스트 파일 복사: $f"
-done
+# docs/*.md 파일 복사
+if [ -d "docs" ]; then
+  for f in docs/*.md; do
+    [ -f "$f" ] && cp "$f" "$WORKSPACE_DIR/" && echo "✅ docs 파일 복사: $(basename $f)"
+  done
+fi
