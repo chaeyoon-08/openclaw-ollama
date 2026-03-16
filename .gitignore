@@ -13,9 +13,9 @@
 Thumbs.db
 
 # Claude Code 로컬 설정
-.claude/
-spec/
-CLAUDE.md
+# .claude/
+# spec/
+# CLAUDE.md
 
 # 에디터
 .vscode/
