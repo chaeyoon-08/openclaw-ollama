@@ -15,7 +15,7 @@ OpenClaw NPM 패키지를 활용하여 Telegram 봇과 Ollama 로컬 LLM을 연�
 - `.env`의 `OLLAMA_MODEL` 값만 변경하여 모델 교체 가능 (기본: `qwen3:32b`)
 - `identity/` 폴더의 bootstrap 파일로 에이전트 성격(한국어 응답, DA Assistant 정체성) 정의
 - `docs/` 폴더의 문서를 에이전트 workspace에 주입하여 문서 기반 Q&A 지원
-- WebUI 없이 Telegram 채널만 사용하는 단순한 구조 유지
+- WebUI 접속 기능 사용 가능 (controlUi 설정 포함), 현재는 Telegram 단독 운영
 
 ---
 
@@ -26,7 +26,8 @@ OpenClaw NPM 패키지를 활용하여 Telegram 봇과 Ollama 로컬 LLM을 연�
 | 항목 | 설명 |
 |------|------|
 | Ollama 로컬 LLM 백엔드 | `ollama/${OLLAMA_MODEL}` 형식, 기본 `qwen3:32b` |
-| Telegram 전용 채널 | DM 페어링 방식, WebUI/브라우저 접속 없음 |
+| Telegram 단독 운영 (추후 Slack 추가 예정) | DM 페어링 방식 |
+| WebUI 접속 기능 | controlUi 설정 포함, 게이트웨이 토큰으로 브라우저 접속 가능 |
 | 에이전트 Identity 관리 | `identity/AGENTS.md`, `identity/IDENTITY.md` → workspace 자동 복사 |
 | Knowledge Base 주입 | `docs/*.md` → `~/.openclaw/workspace/` 자동 복사 |
 | `.env.example` | `TELEGRAM_BOT_TOKEN`, `OLLAMA_MODEL`, `OLLAMA_API_KEY` 세 변수 |
@@ -39,7 +40,6 @@ OpenClaw NPM 패키지를 활용하여 Telegram 봇과 Ollama 로컬 LLM을 연�
 
 | 항목 | 이유 |
 |------|------|
-| WebUI (Control UI) | Telegram 전용 운영, 브라우저 접속 불필요 |
 | 외부 API (Anthropic, Gemini 등) | Ollama 로컬 단일 백엔드 정책 |
 | 멀티 에이전트 구성 | 단일 에이전트(main)로 운영 |
 | 커스텀 플러그인 개발 | openclaw 기본 Telegram 플러그인 사용 |

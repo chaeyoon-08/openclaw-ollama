@@ -261,7 +261,7 @@ python3
     }
   },
 
-  // 채널 설정 — Telegram만 활성화
+  // 채널 설정 — 현재 Telegram 단독 운영 (추후 Slack 추가 예정)
   "channels": {
     "telegram": {
       "enabled": true,
@@ -271,7 +271,7 @@ python3
     }
   },
 
-  // 플러그인 — Telegram만 활성화
+  // 플러그인 — 현재 Telegram 단독 (추후 Slack 추가 예정)
   "plugins": {
     "entries": {
       "telegram": {

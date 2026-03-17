@@ -16,7 +16,7 @@
 
 1. **AI 백엔드는 Ollama 로컬 서버만 사용한다.** `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `anthropic/claude-*`, `google/gemini-*` 등 외부 API 관련 코드를 추가하지 않는다.
 2. **모델은 `.env`의 `OLLAMA_MODEL`로 제어한다.** `setup.sh`에서 `ollama/${OLLAMA_MODEL}` 형식으로 `openclaw.json`에 삽입된다. 기본값은 `qwen3:32b`.
-3. **채널은 Telegram만 활성화한다.** `openclaw.json`의 `channels`에 telegram 외 다른 채널을 추가하지 않는다.
+3. **현재 채널은 Telegram만 활성화한다.** 현재는 Telegram 단독 운영, 추후 Slack 추가 예정. `openclaw.json`의 `channels`에 현재는 telegram만 설정한다.
 4. **파일 수를 최소화한다.** 소스 코드 디렉토리(`src/`, `lib/` 등)나 추가 설정 파일을 만들지 않는다. 필요한 변경은 기존 스크립트를 수정한다.
 5. **`run.sh`는 Ollama 서버 기동을 포함한다.** Ollama 서버 시작 → 준비 대기 → 모델 다운로드 → Gateway 실행 순서를 반드시 유지한다.
 
@@ -106,7 +106,7 @@ openclaw-ollama/              ← repo 루트
 }
 ```
 
-- `channels`에 `telegram` 외 다른 채널을 추가하지 않는다.
+- 현재 `channels`에는 `telegram`만 설정한다. 추후 Slack 추가 예정.
 - 모델 ID는 반드시 `ollama/` 접두사를 사용한다.
 
 ---

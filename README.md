@@ -82,7 +82,7 @@ bash setup.sh
 - Node.js 22 확인 및 설치
 - Ollama 설치
 - openclaw NPM 패키지 전역 설치
-- `~/.openclaw/` 설정 파일 생성
+- `~/.openclaw/` 설정 파일 생성 (WebUI controlUi 포함)
 - `~/.openclaw/workspace/` 생성 및 `identity/*.md`, `docs/*.md` 문서 복사
 
 ### 4. Gateway 실행
@@ -97,6 +97,9 @@ bash run.sh
 3. 지정 모델 다운로드 (최초 1회, qwen3:32b 약 20GB)
 4. OpenClaw Gateway 실행 (`:8080`)
 5. 터미널에 Gateway Token 및 페어링 안내 출력
+
+실행 후 gcube 워크로드 URL로 접속하면 WebUI(Overview 페이지)를 사용할 수 있습니다.
+Gateway Token 필드에 터미널에 출력된 토큰을 입력하면 브라우저에서 게이트웨이 상태를 확인할 수 있습니다.
 
 ### 5. Telegram 페어링
 
@@ -144,12 +147,13 @@ ls ~/.openclaw/workspace/
 | 항목 | 방법 | 성공 기준 |
 |------|------|----------|
 | 1. Gateway 실행 | `bash run.sh` 후 프로세스 확인 | PID 출력, 로그에 에러 없음 |
-| 2. Telegram 연결 | 봇에 메시지 전송 | 페어링 코드 수신 |
-| 3. 페어링 승인 | `openclaw pairing approve telegram [코드]` | 승인 완료 메시지 |
-| 4. AI 응답 | 봇에 "안녕, 넌 뭘 할 수 있어?" 전송 | 로컬 LLM 기반 한국어 텍스트 응답 수신 |
-| 5. 에이전트 정체성 | "자기소개해줘" 전송 | "DA Assistant", "담당자님" 호칭 포함 응답 |
-| 6. 한국어 응답 | 영어로 질문 전송 | 한국어로 답변 |
-| 7. 문서 기반 Q&A | 봇에 문서 관련 질문 전송 | workspace 문서 기반 정확한 답변 |
+| 2. WebUI 접속 | gcube URL 브라우저 접속 → Gateway Token 입력 | Overview 페이지 정상 표시 |
+| 3. Telegram 연결 | 봇에 메시지 전송 | 페어링 코드 수신 |
+| 4. 페어링 승인 | `openclaw pairing approve telegram [코드]` | 승인 완료 메시지 |
+| 5. AI 응답 | 봇에 "안녕, 넌 뭘 할 수 있어?" 전송 | 로컬 LLM 기반 한국어 텍스트 응답 수신 |
+| 6. 에이전트 정체성 | "자기소개해줘" 전송 | "DA Assistant", "담당자님" 호칭 포함 응답 |
+| 7. 한국어 응답 | 영어로 질문 전송 | 한국어로 답변 |
+| 8. 문서 기반 Q&A | 봇에 문서 관련 질문 전송 | workspace 문서 기반 정확한 답변 |
 
 ---
 
@@ -174,7 +178,7 @@ openclaw-ollama/
 런타임 생성 디렉토리:
 ```
 ~/.openclaw/
-├── openclaw.json          ← 게이트웨이 + 채널 설정
+├── openclaw.json          ← 게이트웨이 + 채널 설정 (controlUi 포함)
 ├── workspace/             ← 에이전트 작업 공간 (identity/*.md, docs/*.md 복사됨)
 │   ├── AGENTS.md
 │   ├── IDENTITY.md
@@ -291,7 +295,8 @@ ollama list
 | 런타임 | Node.js 22 (openclaw NPM 패키지) |
 | AI 모델 | Ollama 로컬 LLM (`qwen3:32b` 기본, `.env`에서 변경 가능) |
 | LLM 서버 | Ollama (`http://localhost:11434`) |
-| 채널 | Telegram Bot API (openclaw 내장 플러그인) |
+| 채널 | Telegram Bot API (현재 단독 운영, 추후 Slack 추가 예정) |
+| WebUI | controlUi 설정 포함 (게이트웨이 토큰으로 브라우저 접속 가능) |
 | 인프라 | gcube 컨테이너 (`ollama/ollama:latest`) |
 | 설정 관리 | `~/.openclaw/openclaw.json`, `auth-profiles.json` |
 | 스크립트 | Bash (`setup.sh`, `run.sh`) |
