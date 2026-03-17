@@ -241,6 +241,7 @@ python3
   "agents": {
     "defaults": {
       "model": "ollama/${OLLAMA_MODEL}",    // .env에서 읽은 모델 (예: ollama/qwen3:32b)
+      "timeoutSeconds": 180,               // 응답 타임아웃 (초)
       "memorySearch": {
         "enabled": false                     // 메모리 검색 비활성화
       }

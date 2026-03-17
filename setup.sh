@@ -93,6 +93,7 @@ cat > "$CONFIG_DIR/openclaw.json" << JSONEOF
   "agents": {
     "defaults": {
       "model": "ollama/${OLLAMA_MODEL}",
+      "timeoutSeconds": 180,
       "memorySearch": {
         "enabled": false
       }
